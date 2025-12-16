@@ -21,11 +21,15 @@ object JupiterAPI {
 
     suspend fun getPrices(mints: List<String>): PriceResponse {
         val ids = mints.joinToString(",")
-        val response: HttpResponse = client.get("https://api.jup.ag/price/v3") {
-            header("x-api-key", API_KEY)
-            parameter("ids", ids)
+        try {
+            val response: HttpResponse = client.get("https://api.jup.ag/price/v3") {
+                header("x-api-key", API_KEY)
+                parameter("ids", ids)
+            }
+            return response.body()
+        } catch(e: Exception) {
+            return emptyMap()
         }
-        return response.body()
     }
 
     @Serializable
@@ -41,14 +45,18 @@ object JupiterAPI {
         outputToken: TokenInfo,
         amount: Double,
         taker: Keypair
-    ): PendingOrder {
-        return client.get("https://api.jup.ag/ultra/v1/order") {
-            header("x-api-key", API_KEY)
-            parameter("inputMint", inputToken.mintAddress)
-            parameter("outputMint", outputToken.mintAddress)
-            parameter("amount", (amount*10.0.pow(inputToken.decimals)).toLong())
-            parameter("taker", taker.publicKey.toBase58())
-        }.body()
+    ): PendingOrder? {
+        try {
+            return client.get("https://api.jup.ag/ultra/v1/order") {
+                header("x-api-key", API_KEY)
+                parameter("inputMint", inputToken.mintAddress)
+                parameter("outputMint", outputToken.mintAddress)
+                parameter("amount", (amount * 10.0.pow(inputToken.decimals)).toLong())
+                parameter("taker", taker.publicKey.toBase58())
+            }.body()
+        } catch(e: Exception) {
+            return null
+        }
     }
 
     @Serializable
@@ -72,14 +80,18 @@ object JupiterAPI {
         val swapEvents: List<SwapEvent>? = null,
     )
 
-    suspend fun completeOrder(signedTransaction: String, requestId: String): CompleteOrderResponse {
-        return client.post("https://api.jup.ag/ultra/v1/execute") {
-            header("x-api-key", API_KEY)
-            contentType(ContentType.Application.Json)
-            setBody(buildJsonObject {
-                put("signedTransaction", signedTransaction)
-                put("requestId", requestId)
-            })
-        }.body()
+    suspend fun completeOrder(signedTransaction: String, requestId: String): CompleteOrderResponse? {
+        try {
+            return client.post("https://api.jup.ag/ultra/v1/execute") {
+                header("x-api-key", API_KEY)
+                contentType(ContentType.Application.Json)
+                setBody(buildJsonObject {
+                    put("signedTransaction", signedTransaction)
+                    put("requestId", requestId)
+                })
+            }.body()
+        } catch (e: Exception) {
+            return null
+        }
     }
 }

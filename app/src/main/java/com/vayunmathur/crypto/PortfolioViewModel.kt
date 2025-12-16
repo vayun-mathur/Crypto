@@ -148,7 +148,7 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
             CoroutineScope(Dispatchers.IO).launch {
                 val signedTransaction = signTransaction(order.transaction)
                 val response = JupiterAPI.completeOrder(signedTransaction, order.requestId)
-                if (response.status == "Success") {
+                if (response?.status == "Success") {
                     ignoreNextFetch = true
                     response.swapEvents?.firstOrNull()?.let { swapEvent ->
                         val allTokens = (_tokens.value + _stockTokens.value + _lendTokens.value).toMutableList()

@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,10 +26,20 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.vayunmathur.crypto.PortfolioViewModel
+import org.sol4k.Base58
+import org.sol4k.Keypair
 
 @Composable
 fun LoginScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>) {
     var privateKey by remember { mutableStateOf("") }
+    val privateKeyValid by remember {derivedStateOf{
+        try {
+            Keypair.fromSecretKey(Base58.decode(privateKey))
+            true
+        } catch(e: Exception) {
+            false
+        }
+    }}
 
     Scaffold() { paddingValues ->
         Column(
@@ -39,22 +52,22 @@ fun LoginScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>) 
             OutlinedTextField(
                 value = privateKey,
                 onValueChange = { privateKey = it },
-                label = { Text("Enter your private key") }
+                label = { Text("Enter your private key to restore") }
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Row {
-                Button(
-                    onClick = { viewModel.initializeWallet(privateKey) },
-                    enabled = privateKey.isNotBlank()
-                ) {
-                    Text("Restore Wallet")
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(
-                    onClick = { viewModel.createWallet() }
-                ) {
-                    Text("Create Wallet")
-                }
+            Button(
+                onClick = { viewModel.initializeWallet(privateKey) },
+                enabled = privateKeyValid
+            ) {
+                Text("Restore Existing Wallet")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { viewModel.createWallet() }
+            ) {
+                Text("Create New Wallet")
             }
         }
     }

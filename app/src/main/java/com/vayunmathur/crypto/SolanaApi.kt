@@ -145,46 +145,58 @@ object SolanaAPI {
     val connection = Connection(RpcUrl.MAINNNET)
 
     suspend fun getTokenAccountsByOwner(wallet: Keypair): List<Token> {
-        val tokens1 = rpcCall<TokenAccountByOwnerData>("getTokenAccountsByOwner", buildJsonArray {
-            add(wallet.publicKey.toBase58())
-            add(buildJsonObject {
-                put("programId", "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
+        try {
+            val tokens1 =
+                rpcCall<TokenAccountByOwnerData>("getTokenAccountsByOwner", buildJsonArray {
+                    add(wallet.publicKey.toBase58())
+                    add(buildJsonObject {
+                        put("programId", "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
+                    })
+                    add(buildJsonObject {
+                        put("commitment", "finalized")
+                        put("encoding", "jsonParsed")
+                    })
+                })!!.toTokens()
+            val tokens2 =
+                rpcCall<TokenAccountByOwnerData>("getTokenAccountsByOwner", buildJsonArray {
+                    add(wallet.publicKey.toBase58())
+                    add(buildJsonObject {
+                        put("programId", "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
+                    })
+                    add(buildJsonObject {
+                        put("commitment", "finalized")
+                        put("encoding", "jsonParsed")
+                    })
+                })!!.toTokens()
+            val solanaLamports = rpcCall<ULong>("getBalance", buildJsonArray {
+                add(wallet.publicKey.toBase58())
+                add(buildJsonObject {
+                    put("commitment", "finalized")
+                    put("encoding", "jsonParsed")
+                })
             })
-            add(buildJsonObject {
-                put("commitment", "finalized")
-                put("encoding", "jsonParsed")
-            })
-        }).toTokens()
-        val tokens2 = rpcCall<TokenAccountByOwnerData>("getTokenAccountsByOwner", buildJsonArray {
-            add(wallet.publicKey.toBase58())
-            add(buildJsonObject {
-                put("programId", "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
-            })
-            add(buildJsonObject {
-                put("commitment", "finalized")
-                put("encoding", "jsonParsed")
-            })
-        }).toTokens()
-        val solanaLamports = rpcCall<ULong>("getBalance", buildJsonArray{
-            add(wallet.publicKey.toBase58())
-            add(buildJsonObject {
-                put("commitment", "finalized")
-                put("encoding", "jsonParsed")
-            })
-        })
-        val solanaToken = Token(TokenInfo.SOL, solanaLamports.toDouble() / 1000000000)
-        return (tokens1 + tokens2 + solanaToken)
+            val solanaToken = Token(TokenInfo.SOL, solanaLamports!!.toDouble() / 1000000000)
+            return (tokens1 + tokens2 + solanaToken)
+        } catch(e: Exception) {
+            return emptyList()
+        }
     }
 
-    private suspend inline fun <reified T> rpcCall(method: String, params: JsonArray): T {
-        val response: HttpResponse = client.post(heliusUrl) {
-            contentType(ContentType.Application.Json)
-            setBody(RPCRequest(
-                method = method,
-                params = params
-            ))
+    private suspend inline fun <reified T> rpcCall(method: String, params: JsonArray): T? {
+        try {
+            val response: HttpResponse = client.post(heliusUrl) {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    RPCRequest(
+                        method = method,
+                        params = params
+                    )
+                )
+            }
+            return response.body<RPCResult<T>>().result.value
+        } catch(e: Exception) {
+            return null
         }
-        return response.body<RPCResult<T>>().result.value
     }
 
     fun transfer(from: Keypair, token: TokenInfo, recipient: PublicKey, amount: Double) {

@@ -122,11 +122,15 @@ object PredictionMarket {
     }
 
     suspend fun getPredictionMarkets(): List<Event> {
-        val content = client.get("https://prediction-markets-api.dflow.net/api/v1/events"){
-            parameter("withNestedMarkets", true)
-            parameter("sort", "volume")
-        }.body<PredictionMarketPage>()
-        return content.events.map { it.toRealEvent() }
+        try {
+            val content = client.get("https://prediction-markets-api.dflow.net/api/v1/events") {
+                parameter("withNestedMarkets", true)
+                parameter("sort", "volume")
+            }.body<PredictionMarketPage>()
+            return content.events.map { it.toRealEvent() }
+        } catch(e: Exception) {
+            return emptyList()
+        }
     }
 
     suspend fun makeOrder(market: Event.Market, yes: Boolean, amount: Double, publicKey: String) {
