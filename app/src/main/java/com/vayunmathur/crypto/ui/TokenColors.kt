@@ -11,9 +11,9 @@ fun getTokenColor(tokenInfo: TokenInfo): Color {
         "USDT" -> Color.Green
         "USDS" -> Color.Yellow
         "USDG" -> Color.Green
-        "WSOL" -> Color.Magenta
-        "ETH" -> Color.Gray
-        "BTC" -> Color.Yellow
+        "wSOL" -> Color.Magenta
+        "wETH" -> Color.Gray
+        "wBTC" -> Color.Yellow
         "SPYx" -> Color.Red
         "QQQx" -> Color.Magenta
         "GOOGLx" -> Color.LightGray

@@ -15,7 +15,7 @@ object JupiterLendRepository : Repository<JupiterLendRepository.JLTokenData>(JLT
             // usdt
             "Cmn4v2wipYV41dkakDvCgFJpxhtaaKt11NyWV8pjSE8A" to JLTokenData(0.0507, TokenInfo.TOKEN_LIST.find { it.symbol == "USDT" }!!),
             // wsol
-            "2uQsyo1fXXQkDtcpXnLofWy88PxcvnfH2L8FPSE62FVU" to JLTokenData(0.034, TokenInfo.TOKEN_LIST.find { it.symbol == "WSOL" }!!),
+            "2uQsyo1fXXQkDtcpXnLofWy88PxcvnfH2L8FPSE62FVU" to JLTokenData(0.034, TokenInfo.TOKEN_LIST.find { it.symbol == "wSOL" }!!),
             // eurc
             "GcV9tEj62VncGithz4o4N9x6HWXARxuRgEAYk9zahNA8" to JLTokenData(0.0492, TokenInfo.TOKEN_LIST.find { it.symbol == "EURC" }!!),
             // usds
