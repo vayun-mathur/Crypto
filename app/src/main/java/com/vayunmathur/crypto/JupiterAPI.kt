@@ -20,16 +20,15 @@ object JupiterAPI {
     private const val API_KEY = "873a272b-baf7-4a7a-b0e6-e689a33430c9"
 
     suspend fun getPrices(mints: List<String>): PriceResponse {
-        val ids = mints.joinToString(",")
-        try {
+        return mints.chunked(20).map { try {
             val response: HttpResponse = client.get("https://api.jup.ag/price/v3") {
                 header("x-api-key", API_KEY)
-                parameter("ids", ids)
+                parameter("ids", it.joinToString(","))
             }
-            return response.body()
-        } catch(e: Exception) {
-            return emptyMap()
-        }
+            response.body<PriceResponse>()
+        } catch(_: Exception) {
+            emptyMap()
+        } }.fold(emptyMap()) { acc, map -> acc + map }
     }
 
     @Serializable
@@ -54,7 +53,7 @@ object JupiterAPI {
                 parameter("amount", (amount * 10.0.pow(inputToken.decimals)).toLong())
                 parameter("taker", taker.publicKey.toBase58())
             }.body()
-        } catch(e: Exception) {
+        } catch(_: Exception) {
             null
         }
     }
@@ -90,7 +89,7 @@ object JupiterAPI {
                     put("requestId", requestId)
                 })
             }.body()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

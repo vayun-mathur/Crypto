@@ -130,8 +130,6 @@ private fun StockActionCard(viewModel: PortfolioViewModel, usdcToken: TokenInfo,
                 }
             }
 
-            println(fromAmountForApi)
-
             if(fromAmountForApi > 0) {
                 while (isActive) {
                     try {

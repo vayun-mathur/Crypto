@@ -152,7 +152,7 @@ object SolanaAPI {
             })
             val solanaToken = Token(TokenInfo.SOL, solanaLamports!!.toDouble() / 1000000000)
             return (tokens1 + tokens2 + solanaToken)
-        } catch(e: Exception) {
+        } catch(_: Exception) {
             return emptyList()
         }
     }
@@ -169,7 +169,7 @@ object SolanaAPI {
                 )
             }
             return response.body<RPCResult<T>>().result.value
-        } catch(e: Exception) {
+        } catch(_: Exception) {
             return null
         }
     }
@@ -195,9 +195,7 @@ object SolanaAPI {
         val transaction = VersionedTransaction(message)
         transaction.sign(from)
 
-        val signature = connection.sendTransaction(transaction)
-
-        println("Transaction Signature: $signature")
+        connection.sendTransaction(transaction)
     }
 
     fun createTokenAccount(wallet: Keypair, token: TokenInfo) {

@@ -33,7 +33,6 @@ abstract class Repository<T : Any>(private val valueSerializer: KSerializer<T>) 
                 println("Failed to decode cached data for $sharedPreferencesName: ${e.message}")
             }
         }
-        println(_data.value)
     }
 
     operator fun get(tokenInfo: TokenInfo): T? {
