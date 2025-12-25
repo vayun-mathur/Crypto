@@ -34,28 +34,6 @@ import org.sol4k.instruction.CreateAssociatedTokenAccountInstruction
 import org.sol4k.instruction.SplTransferInstruction
 import kotlin.math.pow
 
-
-@Serializable
-data class RPCRequest(
-    val jsonrpc: String = "2.0",
-    val id: Int = System.currentTimeMillis().toInt(),
-    val method: String,
-    val params: JsonArray
-)
-
-@Serializable
-data class RPCResult<T>(
-    val jsonrpc: String,
-    val result: Result<T>,
-    val id: Int
-) {
-    @Serializable
-    data class Result<T>(
-        val context: JsonElement,
-        val value: T
-    )
-}
-
 typealias TokenAccountByOwnerData = List<TokenAccountByOwnerDataItem>
 
 fun TokenAccountByOwnerData.toTokens(): List<Token> {
@@ -142,7 +120,7 @@ val client = HttpClient(CIO) {
 
 object SolanaAPI {
 
-    val connection = Connection(RpcUrl.MAINNNET)
+    private val connection = Connection(RpcUrl.MAINNNET)
 
     suspend fun getTokenAccountsByOwner(wallet: Keypair): List<Token> {
         try {
@@ -184,7 +162,7 @@ object SolanaAPI {
 
     private suspend inline fun <reified T> rpcCall(method: String, params: JsonArray): T? {
         try {
-            val response: HttpResponse = client.post(heliusUrl) {
+            val response: HttpResponse = client.post(HELIUS_URL) {
                 contentType(ContentType.Application.Json)
                 setBody(
                     RPCRequest(
@@ -227,10 +205,7 @@ object SolanaAPI {
 
     fun createTokenAccount(wallet: Keypair, token: TokenInfo) {
         val blockhash = connection.getLatestBlockhash()
-        val programID = when(token.category) {
-            TokenInfo.Companion.Category.NORMAL, TokenInfo.Companion.Category.JUPITER_LEND -> TOKEN_PROGRAM_ID
-            TokenInfo.Companion.Category.XSTOCK -> TOKEN_2022_PROGRAM_ID
-        }
+        val programID = PublicKey(token.programAddress)
         val (associatedAccount) = PublicKey.findProgramDerivedAddress(wallet.publicKey, PublicKey(token.mintAddress), programID)
         val instruction = when(token.category) {
             TokenInfo.Companion.Category.NORMAL, TokenInfo.Companion.Category.JUPITER_LEND ->
@@ -253,5 +228,26 @@ object SolanaAPI {
         val signature = connection.sendTransaction(transaction)
     }
 
-    private val heliusUrl =  "https://mainnet.helius-rpc.com/?api-key=1fd6f762-ef2f-444a-8eae-eabd44711f31"
+    private const val HELIUS_URL =  "https://mainnet.helius-rpc.com/?api-key=1fd6f762-ef2f-444a-8eae-eabd44711f31"
+
+    @Serializable
+    data class RPCRequest(
+        val jsonrpc: String = "2.0",
+        val id: Int = System.currentTimeMillis().toInt(),
+        val method: String,
+        val params: JsonArray
+    )
+
+    @Serializable
+    data class RPCResult<T>(
+        val jsonrpc: String,
+        val result: Result<T>,
+        val id: Int
+    ) {
+        @Serializable
+        data class Result<T>(
+            val context: JsonElement,
+            val value: T
+        )
+    }
 }
