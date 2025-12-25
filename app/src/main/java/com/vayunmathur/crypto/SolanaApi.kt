@@ -222,7 +222,7 @@ object SolanaAPI {
         val message = TransactionMessage.newMessage(wallet.publicKey, blockhash, instruction)
         val transaction = VersionedTransaction(message)
         transaction.sign(wallet)
-        val signature = connection.sendTransaction(transaction)
+        connection.sendTransaction(transaction)
     }
 
     private const val HELIUS_URL =  "https://mainnet.helius-rpc.com/?api-key=1fd6f762-ef2f-444a-8eae-eabd44711f31"

@@ -2,6 +2,7 @@ package com.vayunmathur.crypto
 
 import android.app.Application
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sol4k.Base58
 import org.sol4k.Keypair
@@ -76,9 +76,8 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
     fun initializeWallet(privateKey: String) {
         try {
             wallet = Keypair.fromSecretKey(Base58.decode(privateKey))
-            with(sharedPreferences.edit()) {
+            sharedPreferences.edit {
                 putString("private_key", privateKey)
-                apply()
             }
             _walletInitialized.value = true
             startDataFetching()
@@ -90,10 +89,9 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
     }
 
     fun logout() {
-        with(sharedPreferences.edit()) {
+        sharedPreferences.edit {
             remove("private_key")
             remove("cached_tokens")
-            apply()
         }
         _walletInitialized.value = false
     }
@@ -118,9 +116,8 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
         JupiterLendRepository.update()
         val fetchedTokens = SolanaAPI.getTokenAccountsByOwner(wallet)
 
-        with(sharedPreferences.edit()) {
+        sharedPreferences.edit {
             putString("cached_tokens", json.encodeToString(fetchedTokens))
-            apply()
         }
 
         _tokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }

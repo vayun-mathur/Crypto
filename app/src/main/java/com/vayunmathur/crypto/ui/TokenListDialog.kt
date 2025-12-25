@@ -25,7 +25,7 @@ fun TokenListDialog(tokenList: List<TokenInfo>, viewModel: PortfolioViewModel, o
                         }
                     } else {
                         TextButton(onClick) {
-                            Text("${tokenInfo.name}")
+                            Text(tokenInfo.name)
                         }
                     }
                 }

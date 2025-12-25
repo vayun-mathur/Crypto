@@ -10,6 +10,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import androidx.core.content.edit
 
 abstract class Repository<T : Any>(private val valueSerializer: KSerializer<T>) {
     protected val _data = MutableStateFlow<Map<String, T>>(emptyMap())
@@ -50,7 +51,7 @@ abstract class Repository<T : Any>(private val valueSerializer: KSerializer<T>) 
     private fun saveData(data: Map<String, T>) {
         if (::sharedPreferences.isInitialized) {
             val encodedData = json.encodeToString(mapSerializer, data)
-            sharedPreferences.edit().putString("cached_data", encodedData).apply()
+            sharedPreferences.edit { putString("cached_data", encodedData) }
         }
     }
 

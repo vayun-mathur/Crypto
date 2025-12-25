@@ -4,10 +4,7 @@ import com.vayunmathur.crypto.token.TokenInfo
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.statement.request
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 
 object PredictionMarket {
 
@@ -144,9 +141,9 @@ object PredictionMarket {
             parameter("amount", (amount*1000000).toInt().toString())
             parameter("slippageBps", slippageBps.toString())
             parameter("userPublicKey", publicKey)
-        };
+        }
 
         val orderResponse = res.body<String>()
-        println(JSON.encodeToString(orderResponse));
+        println(JSON.encodeToString(orderResponse))
     }
 }

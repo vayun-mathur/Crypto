@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -23,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,7 +49,6 @@ import com.vayunmathur.crypto.displayAmount
 import com.vayunmathur.crypto.token.Token
 import com.vayunmathur.crypto.token.TokenInfo
 import com.vayunmathur.crypto.token.TokenPriceRepository
-import kotlin.text.format
 
 @Composable
 fun StocksScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>) {
@@ -59,12 +56,13 @@ fun StocksScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>)
     val totalValue = stockTokens.sumOf { it.totalValue }
     var showDialog by remember { mutableStateOf(false) }
 
-    val availableStockTokens = TokenInfo.TOKEN_LIST.filter {
-        it.category == TokenInfo.Companion.Category.XSTOCK && stockTokens.none { stockToken -> stockToken.tokenInfo == it }
+    val availableStockTokens = TokenInfo.BY_TYPE(TokenInfo.Companion.Category.XSTOCK).filter {
+        stockTokens.none { stockToken -> stockToken.tokenInfo == it }
     }
 
     if (showDialog) {
-        TokenListDialog(TokenInfo.TOKEN_LIST.filter{it.category == TokenInfo.Companion.Category.XSTOCK} - stockTokens.map{it.tokenInfo}, viewModel = viewModel) { showDialog = false }
+        TokenListDialog(TokenInfo.BY_TYPE(TokenInfo.Companion.Category.XSTOCK) - stockTokens.map{it.tokenInfo}
+            .toSet(), viewModel = viewModel) { showDialog = false }
     }
 
     Scaffold(bottomBar = {

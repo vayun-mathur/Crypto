@@ -46,8 +46,8 @@ object JupiterAPI {
         amount: Double,
         taker: Keypair
     ): PendingOrder? {
-        try {
-            return client.get("https://api.jup.ag/ultra/v1/order") {
+        return try {
+            client.get("https://api.jup.ag/ultra/v1/order") {
                 header("x-api-key", API_KEY)
                 parameter("inputMint", inputToken.mintAddress)
                 parameter("outputMint", outputToken.mintAddress)
@@ -55,7 +55,7 @@ object JupiterAPI {
                 parameter("taker", taker.publicKey.toBase58())
             }.body()
         } catch(e: Exception) {
-            return null
+            null
         }
     }
 
@@ -81,8 +81,8 @@ object JupiterAPI {
     )
 
     suspend fun completeOrder(signedTransaction: String, requestId: String): CompleteOrderResponse? {
-        try {
-            return client.post("https://api.jup.ag/ultra/v1/execute") {
+        return try {
+            client.post("https://api.jup.ag/ultra/v1/execute") {
                 header("x-api-key", API_KEY)
                 contentType(ContentType.Application.Json)
                 setBody(buildJsonObject {
@@ -91,7 +91,7 @@ object JupiterAPI {
                 })
             }.body()
         } catch (e: Exception) {
-            return null
+            null
         }
     }
 }

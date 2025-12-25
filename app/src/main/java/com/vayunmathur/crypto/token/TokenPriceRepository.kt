@@ -10,7 +10,7 @@ object TokenPriceRepository : Repository<TokenPriceRepository.PriceData>(PriceDa
     override val sharedPreferencesName = "token_price_repo"
 
     override suspend fun getData(): Map<String, PriceData> {
-        val prices = mutableMapOf<String, PriceData>(TokenInfo.SOL.mintAddress to PriceData(130.15, -2.56))
+        val prices = mutableMapOf(TokenInfo.SOL.mintAddress to PriceData(130.15, -2.56))
         val prices2 = JupiterAPI.getPrices(TokenInfo.TOKEN_LIST.map { it.mintAddress })
         prices2.forEach { (mint, price) ->
             prices[mint] = PriceData(price.usdPrice, price.priceChange24h)

@@ -83,7 +83,8 @@ fun PortfolioScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
     }
 
     if (showTokenDialog) {
-        TokenListDialog(TokenInfo.TOKEN_LIST.filter{it.category == TokenInfo.Companion.Category.NORMAL} - tokens.map{it.tokenInfo}, viewModel = viewModel) { showTokenDialog = false}
+        TokenListDialog(TokenInfo.TOKEN_LIST.filter{it.category == TokenInfo.Companion.Category.NORMAL} - tokens.map{it.tokenInfo}
+            .toSet(), viewModel = viewModel) { showTokenDialog = false}
     }
 
     ModalNavigationDrawer(

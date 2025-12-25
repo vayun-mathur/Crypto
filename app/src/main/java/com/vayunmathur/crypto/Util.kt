@@ -31,48 +31,6 @@ fun BackButton(backStack: NavBackStack<NavKey>) {
     }
 }
 
-
-
-private const val BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-private val BASE58_INDEXES = IntArray(128) { -1 }.apply {
-    for (i in BASE58_ALPHABET.indices) {
-        this[BASE58_ALPHABET[i].code] = i
-    }
-}
-
-fun String.decodeBase58Bytes(): ByteArray {
-    if (this.isEmpty()) return ByteArray(0)
-    var zeros = 0
-    while (zeros < this.length && this[zeros] == '1') {
-        zeros++
-    }
-    val decoded = ByteArray(this.length)
-    var length = 0
-    for (i in zeros until this.length) {
-        val c = this[i]
-        val digit = if (c.code < 128) BASE58_INDEXES[c.code] else -1
-        if (digit == -1) {
-            throw IllegalArgumentException("Invalid Base58 character: $c")
-        }
-        var carry = digit
-        for (j in 0 until length) {
-            val temp = (decoded[j].toInt() and 0xFF) * 58 + carry
-            decoded[j] = temp.toByte()
-            carry = temp ushr 8
-        }
-
-        while (carry > 0) {
-            decoded[length++] = carry.toByte()
-            carry = carry ushr 8
-        }
-    }
-    val output = ByteArray(zeros + length)
-    for (i in 0 until length) {
-        output[zeros + length - 1 - i] = decoded[i]
-    }
-    return output
-}
-
 fun Double.displayAmount(): String {
     return if (abs(this) < 1) {
         // Up to 3 significant figures (no scientific notation)

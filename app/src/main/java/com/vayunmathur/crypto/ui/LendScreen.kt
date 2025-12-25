@@ -61,7 +61,8 @@ fun LendScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>) {
     }
 
     if (showDialog) {
-        TokenListDialog(TokenInfo.TOKEN_LIST.filter{it.category == TokenInfo.Companion.Category.JUPITER_LEND} - lendTokens.map{it.tokenInfo}, viewModel = viewModel) { showDialog = false}
+        TokenListDialog(TokenInfo.TOKEN_LIST.filter{it.category == TokenInfo.Companion.Category.JUPITER_LEND} - lendTokens.map{it.tokenInfo}
+            .toSet(), viewModel = viewModel) { showDialog = false}
     }
 
     Scaffold(bottomBar = {
