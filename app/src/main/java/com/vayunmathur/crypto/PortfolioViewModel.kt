@@ -32,8 +32,8 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
     private val json = Json { ignoreUnknownKeys = true }
     private var ignoreNextFetch = false
 
-    private val _tokens = MutableStateFlow<List<Token>>(emptyList())
-    val tokens: StateFlow<List<Token>> = _tokens
+    private val _normalTokens = MutableStateFlow<List<Token>>(emptyList())
+    val normalTokens: StateFlow<List<Token>> = _normalTokens
 
     private val _lendTokens = MutableStateFlow<List<Token>>(emptyList())
     val lendTokens: StateFlow<List<Token>> = _lendTokens
@@ -43,6 +43,7 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
 
     private val _predictionMarkets = MutableStateFlow<List<PredictionMarket.Event>>(emptyList())
     val predictionMarkets: StateFlow<List<PredictionMarket.Event>> = _predictionMarkets
+
 
     lateinit var wallet: Keypair
         private set
@@ -54,17 +55,19 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
         TokenPriceRepository.init(application)
         JupiterLendRepository.init(application)
 
-        val savedPrivateKey = sharedPreferences.getString("private_key", null)
-        if (savedPrivateKey != null) {
-            initializeWallet(savedPrivateKey)
-        }
-
         val cachedTokens = sharedPreferences.getString("cached_tokens", null)
         if (cachedTokens != null) {
             val decodedTokens = json.decodeFromString<List<Token>>(cachedTokens)
-            _tokens.value = decodedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
+            _normalTokens.value = decodedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
             _stockTokens.value = decodedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.XSTOCK }
             _lendTokens.value = decodedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
+        }
+
+        println(cachedTokens)
+
+        val savedPrivateKey = sharedPreferences.getString("private_key", null)
+        if (savedPrivateKey != null) {
+            initializeWallet(savedPrivateKey)
         }
     }
 
@@ -120,7 +123,7 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
             putString("cached_tokens", json.encodeToString(fetchedTokens))
         }
 
-        _tokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
+        _normalTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
         _stockTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.XSTOCK }
         _lendTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
         //_predictionMarkets.value = PredictionMarket.getPredictionMarkets()
@@ -148,7 +151,7 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
                 if (response?.status == "Success") {
                     ignoreNextFetch = true
                     response.swapEvents?.firstOrNull()?.let { swapEvent ->
-                        val allTokens = (_tokens.value + _stockTokens.value + _lendTokens.value).toMutableList()
+                        val allTokens = (_normalTokens.value + _stockTokens.value + _lendTokens.value).toMutableList()
                         val inputToken = allTokens.find { it.tokenInfo.mintAddress == swapEvent.inputMint }
                         val outputToken = allTokens.find { it.tokenInfo.mintAddress == swapEvent.outputMint }
 
@@ -169,7 +172,7 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
                                 allTokens[outputIndex] = updatedOutputToken
                             }
 
-                            _tokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
+                            _normalTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
                             _stockTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.XSTOCK }
                             _lendTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
                         }

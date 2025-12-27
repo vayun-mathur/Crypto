@@ -13,13 +13,13 @@ import com.vayunmathur.crypto.token.JupiterLendRepository
 import com.vayunmathur.crypto.token.TokenInfo
 
 @Composable
-fun TokenListDialog(tokenList: List<TokenInfo>, viewModel: PortfolioViewModel, onDismiss: () -> Unit) {
+fun TokenListDialog(alreadyExistingTokens: Set<TokenInfo>, viewModel: PortfolioViewModel, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = { Text("Add a new Token") },
         text = {
             LazyColumn {
-                items(tokenList) { tokenInfo ->
+                items(TokenInfo.TOKEN_LIST - alreadyExistingTokens) { tokenInfo ->
                     val onClick = { viewModel.createTokenAccount(tokenInfo); onDismiss() }
                     if(tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND) {
                         val apy = JupiterLendRepository[tokenInfo]?.apy ?: 0.0

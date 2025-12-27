@@ -37,10 +37,8 @@ import androidx.navigation3.runtime.NavKey
 import com.vayunmathur.crypto.JupiterAPI
 import com.vayunmathur.crypto.MAIN_NAVBAR_PAGES
 import com.vayunmathur.crypto.NavigationBottomBar
-import com.vayunmathur.crypto.PORTFOLIO_NAVBAR_PAGES
 import com.vayunmathur.crypto.PortfolioPage
 import com.vayunmathur.crypto.PortfolioViewModel
-import com.vayunmathur.crypto.StocksPage
 import com.vayunmathur.crypto.displayAmount
 import com.vayunmathur.crypto.token.TokenInfo
 import com.vayunmathur.crypto.token.TokenPriceRepository
@@ -58,33 +56,29 @@ fun StockDetailScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<Nav
     Scaffold(bottomBar = {
         NavigationBottomBar(MAIN_NAVBAR_PAGES, PortfolioPage, backStack)
     }) { paddingValues ->
-        Scaffold(bottomBar = {
-            NavigationBottomBar(PORTFOLIO_NAVBAR_PAGES, StocksPage, backStack)
-        }, modifier = Modifier.padding(paddingValues)) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = stockToken.tokenInfo.name,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "$${String.format("%.2f", stockToken.totalValue)}",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(text = "${stockToken.amount.displayAmount()} ${stockToken.tokenInfo.symbol}")
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stockToken.tokenInfo.name,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "$${String.format("%.2f", stockToken.totalValue)}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(text = "${stockToken.amount.displayAmount()} ${stockToken.tokenInfo.symbol}")
 
-                Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-                StockActionCard(viewModel, usdcToken, stockToken.tokenInfo)
-            }
+            StockActionCard(viewModel, usdcToken, stockToken.tokenInfo)
         }
     }
 }

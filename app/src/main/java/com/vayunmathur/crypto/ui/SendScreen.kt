@@ -40,8 +40,8 @@ import java.text.NumberFormat
 
 @Composable
 fun SendScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>) {
-    val tokens by viewModel.tokens.collectAsState()
-    val sendableTokens = tokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }.map { it.tokenInfo }
+    val tokens by viewModel.normalTokens.collectAsState()
+    val sendableTokens = tokens.map { it.tokenInfo }
     var fromAmount by remember { mutableStateOf("") }
     var fromTokenInfo by remember { mutableStateOf(TokenInfo.USDC) }
     var recipientAddress by remember { mutableStateOf("") }

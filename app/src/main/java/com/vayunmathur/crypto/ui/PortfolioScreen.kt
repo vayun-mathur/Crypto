@@ -51,14 +51,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.vayunmathur.crypto.LendDetailPage
 import com.vayunmathur.crypto.MAIN_NAVBAR_PAGES
 import com.vayunmathur.crypto.NavigationBottomBar
-import com.vayunmathur.crypto.PORTFOLIO_NAVBAR_PAGES
 import com.vayunmathur.crypto.PortfolioPage
 import com.vayunmathur.crypto.PortfolioViewModel
 import com.vayunmathur.crypto.PrivateKeyPage
 import com.vayunmathur.crypto.R
+import com.vayunmathur.crypto.StockDetailPage
 import com.vayunmathur.crypto.displayAmount
+import com.vayunmathur.crypto.token.JupiterLendRepository
 import com.vayunmathur.crypto.token.Token
 import com.vayunmathur.crypto.token.TokenInfo
 import com.vayunmathur.crypto.token.TokenPriceRepository
@@ -71,7 +73,6 @@ fun PortfolioScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
     val scope = rememberCoroutineScope()
     var showDialog by remember { mutableStateOf(false) }
     var showTokenDialog by remember { mutableStateOf(false) }
-    val tokens by viewModel.tokens.collectAsState()
 
     if (showDialog) {
         ConfirmationDialog(
@@ -81,10 +82,13 @@ fun PortfolioScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
             content = "Please make sure you have your private key saved somewhere so you can restore your wallet again."
         )
     }
+    val normalTokens by viewModel.normalTokens.collectAsState()
+    val stockTokens by viewModel.stockTokens.collectAsState()
+    val lendTokens by viewModel.lendTokens.collectAsState()
+    val tokens = normalTokens + stockTokens + lendTokens
 
     if (showTokenDialog) {
-        TokenListDialog(TokenInfo.TOKEN_LIST.filter{it.category == TokenInfo.Companion.Category.NORMAL} - tokens.map{it.tokenInfo}
-            .toSet(), viewModel = viewModel) { showTokenDialog = false}
+        TokenListDialog(tokens.map{it.tokenInfo}.toSet(), viewModel = viewModel) { showTokenDialog = false}
     }
 
     ModalNavigationDrawer(
@@ -113,27 +117,22 @@ fun PortfolioScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
                 }
             })
         }, contentWindowInsets = WindowInsets()) { paddingValues ->
-            Scaffold(bottomBar = {
-                NavigationBottomBar(PORTFOLIO_NAVBAR_PAGES, PortfolioPage, backStack)
-            }, floatingActionButton = {
-                FloatingActionButton(onClick = { showTokenDialog = true }) {
-                    Icon(painterResource(id = R.drawable.add_24px), contentDescription = "Add")
-                }
-            }, contentWindowInsets = WindowInsets(), modifier = Modifier.padding(paddingValues)) { paddingValues ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize().padding(paddingValues)
-                ) {
-                    TokenListScreen(viewModel)
-                }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize().padding(paddingValues)
+            ) {
+                TokenListScreen(viewModel, backStack)
             }
         }
     }
 }
 
 @Composable
-fun TokenListScreen(viewModel: PortfolioViewModel) {
-    val tokens by viewModel.tokens.collectAsState()
+fun TokenListScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>) {
+    val normalTokens by viewModel.normalTokens.collectAsState()
+    val stockTokens by viewModel.stockTokens.collectAsState()
+    val lendTokens by viewModel.lendTokens.collectAsState()
+    val tokens = normalTokens + stockTokens + lendTokens
     val wallet = viewModel.wallet
     val totalValue = tokens.sumOf { it.totalValue }
     val context = LocalContext.current
@@ -165,16 +164,49 @@ fun TokenListScreen(viewModel: PortfolioViewModel) {
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
         )
-        Spacer(modifier = Modifier.height(32.dp))
-        Text(
-            text = "Token Positions",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn {
-            items(tokens) { token ->
+
+        LazyColumn() {
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    "Token Positions",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            items(normalTokens) { token ->
                 TokenCard(token = token)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    "Stock Positions",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            items(stockTokens) { token ->
+                TokenCard(token = token) {
+                    backStack.add(StockDetailPage(token.tokenInfo.mintAddress))
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    "Lending Positions",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            items(lendTokens) { token ->
+                TokenCard(token = token) {
+                    backStack.add(LendDetailPage(token.tokenInfo.mintAddress))
+                }
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
@@ -182,9 +214,9 @@ fun TokenListScreen(viewModel: PortfolioViewModel) {
 }
 
 @Composable
-fun TokenCard(token: Token) {
+fun TokenCard(token: Token, onClick: () -> Unit = {}) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable{onClick()},
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
     ) {
         Row(
@@ -199,10 +231,17 @@ fun TokenCard(token: Token) {
             )
             Column(modifier = Modifier.padding(start = 16.dp)) {
                 Text(text = token.tokenInfo.name, fontWeight = FontWeight.Bold)
-                Text(
-                    text = "$${String.format("%.2f", TokenPriceRepository[token.tokenInfo]!!.price)} ${if (TokenPriceRepository[token.tokenInfo]!!.change >= 0) "+" else ""}${String.format("%.2f", TokenPriceRepository[token.tokenInfo]!!.change)}%",
-                    color = if (TokenPriceRepository[token.tokenInfo]!!.change >= 0) Color.Green else Color.Red
-                )
+                when(token.tokenInfo.category) {
+                    TokenInfo.Companion.Category.NORMAL, TokenInfo.Companion.Category.XSTOCK -> Text(
+                        text = "$${String.format("%.2f", TokenPriceRepository[token.tokenInfo]!!.price)} ${if (TokenPriceRepository[token.tokenInfo]!!.change >= 0) "+" else ""}${String.format("%.2f", TokenPriceRepository[token.tokenInfo]!!.change)}%",
+                        color = if (TokenPriceRepository[token.tokenInfo]!!.change >= 0) Color.Green else Color.Red
+                    )
+                    TokenInfo.Companion.Category.JUPITER_LEND -> {
+                        val apy = JupiterLendRepository[token.tokenInfo]?.apy ?: 0.0
+                        Text(text = "${String.format("%.2f", apy * 100)}% APY", color = Color.Green)
+                    }
+                }
+
             }
             Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {

@@ -58,8 +58,8 @@ import kotlin.math.pow
 
 @Composable
 fun SwapScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>) {
-    val tokens by viewModel.tokens.collectAsState()
-    val swappableTokens = tokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }.map { it.tokenInfo }
+    val tokens by viewModel.normalTokens.collectAsState()
+    val swappableTokens = tokens.map { it.tokenInfo }
     var fromAmount by remember { mutableStateOf("5") }
     var toTokenInfo by remember { mutableStateOf(TokenInfo.USDC) }
     var fromTokenInfo by remember { mutableStateOf(TokenInfo.SOL) }

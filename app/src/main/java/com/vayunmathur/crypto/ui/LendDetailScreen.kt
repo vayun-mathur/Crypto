@@ -35,10 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.vayunmathur.crypto.JupiterAPI
-import com.vayunmathur.crypto.LendPage
 import com.vayunmathur.crypto.MAIN_NAVBAR_PAGES
 import com.vayunmathur.crypto.NavigationBottomBar
-import com.vayunmathur.crypto.PORTFOLIO_NAVBAR_PAGES
 import com.vayunmathur.crypto.PortfolioPage
 import com.vayunmathur.crypto.PortfolioViewModel
 import com.vayunmathur.crypto.displayAmount
@@ -60,33 +58,29 @@ fun LendDetailScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavK
     Scaffold(bottomBar = {
         NavigationBottomBar(MAIN_NAVBAR_PAGES, PortfolioPage, backStack)
     }) { paddingValues ->
-        Scaffold(bottomBar = {
-            NavigationBottomBar(PORTFOLIO_NAVBAR_PAGES, LendPage, backStack)
-        }, modifier = Modifier.padding(paddingValues)) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = jlToken.tokenInfo.name,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "$${String.format("%.2f", jlToken.totalValue)}",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(text = "${jlToken.amount.displayAmount()} ${jlToken.tokenInfo.symbol}")
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = jlToken.tokenInfo.name,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "$${String.format("%.2f", jlToken.totalValue)}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(text = "${jlToken.amount.displayAmount()} ${jlToken.tokenInfo.symbol}")
 
-                Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-                LendActionCard(viewModel, underlyingToken, jlToken.tokenInfo)
-            }
+            LendActionCard(viewModel, underlyingToken, jlToken.tokenInfo)
         }
     }
 }

@@ -45,7 +45,6 @@ import com.vayunmathur.crypto.BackButton
 import com.vayunmathur.crypto.MAIN_NAVBAR_PAGES
 import com.vayunmathur.crypto.MaximizedRow
 import com.vayunmathur.crypto.NavigationBottomBar
-import com.vayunmathur.crypto.PORTFOLIO_NAVBAR_PAGES
 import com.vayunmathur.crypto.PortfolioViewModel
 import com.vayunmathur.crypto.PredictionMarket
 import com.vayunmathur.crypto.PredictionMarketPage
@@ -76,9 +75,6 @@ fun PredictionMarketDetailScreen(viewModel: PortfolioViewModel, backStack: NavBa
             NavigationBottomBar(MAIN_NAVBAR_PAGES,PredictionMarketPage, backStack)
         }
     ) { paddingValues ->
-        Scaffold(bottomBar = {
-            NavigationBottomBar(PORTFOLIO_NAVBAR_PAGES, PredictionMarketPage, backStack)
-        }, modifier = Modifier.padding(paddingValues)) { paddingValues ->
             if (market != null) {
                 LazyColumn(
                     Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp)
@@ -158,7 +154,6 @@ fun PredictionMarketDetailScreen(viewModel: PortfolioViewModel, backStack: NavBa
                         }
                     }
                 }
-            }
         }
     }
 

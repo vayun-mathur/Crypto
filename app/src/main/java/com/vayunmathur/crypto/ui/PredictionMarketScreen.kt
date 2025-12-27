@@ -31,7 +31,6 @@ import androidx.navigation3.runtime.NavKey
 import com.vayunmathur.crypto.MAIN_NAVBAR_PAGES
 import com.vayunmathur.crypto.MaximizedRow
 import com.vayunmathur.crypto.NavigationBottomBar
-import com.vayunmathur.crypto.PORTFOLIO_NAVBAR_PAGES
 import com.vayunmathur.crypto.PortfolioPage
 import com.vayunmathur.crypto.PortfolioViewModel
 import com.vayunmathur.crypto.PredictionMarket
@@ -47,20 +46,16 @@ fun PredictionMarketScreen(viewModel: PortfolioViewModel, backStack: NavBackStac
     Scaffold(bottomBar = {
         NavigationBottomBar(MAIN_NAVBAR_PAGES, PortfolioPage, backStack)
     }) { paddingValues ->
-            Scaffold(bottomBar = {
-                NavigationBottomBar(PORTFOLIO_NAVBAR_PAGES, PredictionMarketPage, backStack)
-            }, modifier = Modifier.padding(paddingValues)) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues).padding(horizontal = 16.dp)
-            ) {
-                Text("Prediction Market viewing is available, but trading currently is unavailable until our provider increases liquidity", style = MaterialTheme.typography.labelSmall)
-                Spacer(Modifier.height(8.dp))
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(markets.filter { it.anyMarketOpen() }) { market ->
-                        PredictionMarketCard(market, backStack)
-                    }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues).padding(horizontal = 16.dp)
+        ) {
+            Text("Prediction Market viewing is available, but trading currently is unavailable until our provider increases liquidity", style = MaterialTheme.typography.labelSmall)
+            Spacer(Modifier.height(8.dp))
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(markets.filter { it.anyMarketOpen() }) { market ->
+                    PredictionMarketCard(market, backStack)
                 }
             }
         }

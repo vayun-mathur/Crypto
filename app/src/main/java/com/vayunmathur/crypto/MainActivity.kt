@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -20,7 +23,6 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.vayunmathur.crypto.ui.LendDetailScreen
-import com.vayunmathur.crypto.ui.LendScreen
 import com.vayunmathur.crypto.ui.LoginScreen
 import com.vayunmathur.crypto.ui.PortfolioScreen
 import com.vayunmathur.crypto.ui.PredictionMarketDetailPage
@@ -29,7 +31,6 @@ import com.vayunmathur.crypto.ui.PredictionMarketScreen
 import com.vayunmathur.crypto.ui.PrivateKeyScreen
 import com.vayunmathur.crypto.ui.SendScreen
 import com.vayunmathur.crypto.ui.StockDetailScreen
-import com.vayunmathur.crypto.ui.StocksScreen
 import com.vayunmathur.crypto.ui.SwapScreen
 import com.vayunmathur.crypto.ui.theme.CryptoTheme
 import kotlinx.serialization.Serializable
@@ -56,9 +57,6 @@ data object LoginPage: NavKey
 data object PortfolioPage: NavKey
 
 @Serializable
-data object LendPage: NavKey
-
-@Serializable
 data class LendDetailPage(val jlTokenMint: String): NavKey
 
 @Serializable
@@ -69,9 +67,6 @@ data object SwapPage: NavKey
 
 @Serializable
 data object SendPage: NavKey
-
-@Serializable
-data object StocksPage: NavKey
 
 @Serializable
 data class StockDetailPage(val stockTokenMint: String): NavKey
@@ -104,10 +99,6 @@ fun Navigation(viewModel: PortfolioViewModel) {
                 PortfolioScreen(viewModel, backStack)
             }
 
-            is LendPage -> NavEntry(key) {
-                LendScreen(viewModel, backStack)
-            }
-
             is LendDetailPage -> NavEntry(key) {
                 LendDetailScreen(viewModel, backStack, key.jlTokenMint)
             }
@@ -126,10 +117,6 @@ fun Navigation(viewModel: PortfolioViewModel) {
 
             is SendPage -> NavEntry(key) {
                 SendScreen(viewModel, backStack)
-            }
-
-            is StocksPage -> NavEntry(key) {
-                StocksScreen(viewModel, backStack)
             }
 
             is StockDetailPage -> NavEntry(key) {
@@ -154,16 +141,10 @@ val MAIN_NAVBAR_PAGES = listOf(
     NavbarPage("Send", R.drawable.send_24px, SendPage)
 )
 
-val PORTFOLIO_NAVBAR_PAGES = listOf(
-    NavbarPage("Portfolio", R.drawable.account_balance_wallet_24px, PortfolioPage),
-    NavbarPage("Lend", R.drawable.lend_24px, LendPage),
-    NavbarPage("Stocks", R.drawable.finance_mode_24px, StocksPage),
-    //NavbarPage("Predict", R.drawable.online_prediction_24px, PredictionMarketPage)
-)
-
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NavigationBottomBar(pages: List<NavbarPage>, currentPage: NavKey, backStack: NavBackStack<NavKey>) {
-    NavigationBar {
+    FlexibleBottomAppBar() {
         pages.forEach { item ->
             NavigationBarItem(
                 selected = currentPage == item.route,
