@@ -216,7 +216,7 @@ object SolanaAPI {
         val programID = PublicKey(token.programAddress)
         val (associatedAccount) = PublicKey.findProgramDerivedAddress(wallet.publicKey, PublicKey(token.mintAddress), programID)
         val instruction = when(token.category) {
-            TokenInfo.Companion.Category.NORMAL, TokenInfo.Companion.Category.JUPITER_LEND ->
+            TokenInfo.Companion.Category.NORMAL, TokenInfo.Companion.Category.JUPITER_LEND, TokenInfo.Companion.Category.PRED_MARKET ->
                 CreateAssociatedTokenAccountInstruction(
                     payer = wallet.publicKey,
                     associatedToken = associatedAccount,

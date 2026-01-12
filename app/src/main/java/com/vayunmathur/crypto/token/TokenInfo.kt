@@ -19,7 +19,7 @@ data class TokenInfo(
         val TOKEN_2022 = TOKEN_2022_PROGRAM_ID.toBase58()
 
         enum class Category {
-            NORMAL, JUPITER_LEND, XSTOCK
+            NORMAL, JUPITER_LEND, XSTOCK, PRED_MARKET
         }
 
         val SOL = TokenInfo(
@@ -39,7 +39,7 @@ data class TokenInfo(
             SPL_TOKEN
         )
 
-        val TOKEN_LIST = listOf(
+        private val TOKEN_LIST_MAIN = listOf(
             SOL,
             // STABLECOINS
             TokenInfo("EURC", "EURC", Category.NORMAL, "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr", 6, SPL_TOKEN),
@@ -133,7 +133,19 @@ data class TokenInfo(
             TokenInfo("jlUSDG", "Lended USDG", Category.JUPITER_LEND, "9fvHrYNw1A8Evpcj7X2yy4k4fT7nNHcA9L6UsamNHAif", 6, SPL_TOKEN)
         )
 
-        val TOKEN_MAP = TOKEN_LIST.associateBy { it.mintAddress }
+        private var TOKEN_LIST_PREDICTION = listOf<TokenInfo>()
+
+        var TOKEN_LIST: List<TokenInfo> = TOKEN_LIST_MAIN + TOKEN_LIST_PREDICTION
+            private set
+
+        var TOKEN_MAP = TOKEN_LIST.associateBy { it.mintAddress }
+            private set
+
+        fun update(predTokens: List<TokenInfo>) {
+            TOKEN_LIST_PREDICTION = predTokens
+            TOKEN_LIST = TOKEN_LIST_MAIN + TOKEN_LIST_PREDICTION
+            TOKEN_MAP = TOKEN_LIST.associateBy { it.mintAddress }
+        }
 
         fun BY_TYPE(category: Category) = TOKEN_LIST.filter { it.category == category }
     }

@@ -15,6 +15,7 @@ import com.vayunmathur.crypto.token.JupiterLendRepository
 import com.vayunmathur.crypto.token.Token
 import com.vayunmathur.crypto.token.TokenInfo
 import com.vayunmathur.crypto.token.TokenPriceRepository
+import com.vayunmathur.crypto.ui.PredictionMarketCard
 import io.ktor.util.encodeBase64
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +46,9 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
     private val _stockTokens = MutableStateFlow<List<Token>>(emptyList())
     val stockTokens: StateFlow<List<Token>> = _stockTokens
 
+    private val _predTokens = MutableStateFlow<List<Token>>(emptyList())
+    val predTokens: StateFlow<List<Token>> = _predTokens
+
     private val _predictionMarkets = MutableStateFlow<List<PredictionMarket.Event>>(emptyList())
     val predictionMarkets: StateFlow<List<PredictionMarket.Event>> = _predictionMarkets
 
@@ -59,20 +63,21 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
         TokenPriceRepository.init(application)
         JupiterLendRepository.init(application)
 
+        updatePredictionMarkers()
+
         val cachedTokens = sharedPreferences.getString("cached_tokens", null)
         if (cachedTokens != null) {
             val decodedTokens = json.decodeFromString<List<Token>>(cachedTokens)
             _normalTokens.value = decodedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
             _stockTokens.value = decodedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.XSTOCK }
             _lendTokens.value = decodedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
+            _predTokens.value = decodedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.PRED_MARKET }
         }
 
         val savedPrivateKey = sharedPreferences.getString("private_key", null)
         if (savedPrivateKey != null) {
             initializeWallet(savedPrivateKey)
         }
-
-        updatePredictionMarkers()
     }
 
     fun createWallet() {
@@ -130,11 +135,34 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
         _normalTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
         _stockTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.XSTOCK }
         _lendTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
+        _predTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.PRED_MARKET }
     }
 
     fun updatePredictionMarkers() {
         viewModelScope.launch {
-            _predictionMarkets.value = PredictionMarket.getPredictionMarkets()
+            val events = PredictionMarket.getPredictionMarkets()
+            _predictionMarkets.value = events
+            val tokens = events.flatMap { event -> event.markets.associateWith { event }.toList() }.flatMap { (market, event) ->
+                listOf(
+                    TokenInfo(
+                        symbol = "Contracts",
+                        name = "Yes ${market.subtitle}: ${event.title}",
+                        category = TokenInfo.Companion.Category.PRED_MARKET,
+                        mintAddress = market.yesMint,
+                        decimals = 6,
+                        programAddress = TokenInfo.SPL_TOKEN
+                    ),
+                    TokenInfo(
+                        symbol = "Contracts",
+                        name = "No ${market.subtitle}: ${event.title}",
+                        category = TokenInfo.Companion.Category.PRED_MARKET,
+                        mintAddress = market.noMint,
+                        decimals = 6,
+                        programAddress = TokenInfo.SPL_TOKEN
+                    ),
+                )
+            }
+            TokenInfo.update(tokens)
         }
     }
 
@@ -160,7 +188,7 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
                 println(response)
                 if (response != null) {
                     ignoreNextFetch = true
-                    val allTokens = (_normalTokens.value + _stockTokens.value + _lendTokens.value).toMutableList()
+                    val allTokens = (_normalTokens.value + _stockTokens.value + _lendTokens.value + _predTokens.value).toMutableList()
                     val inputToken = allTokens.find { it.tokenInfo.mintAddress == order.inputMint }
                     val outputToken = allTokens.find { it.tokenInfo.mintAddress == order.outputMint }
 
@@ -184,6 +212,7 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
                         _normalTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
                         _stockTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.XSTOCK }
                         _lendTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
+                        _predTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.PRED_MARKET }
                     }
                 } else {
                     showToast("Transaction failed")

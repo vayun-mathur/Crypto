@@ -68,7 +68,6 @@ data class PredictionMarketDetailPage(val marketId: String): NavKey
 fun PredictionMarketDetailScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>, marketId: String) {
     val markets by viewModel.predictionMarkets.collectAsState()
     val market = markets.find { it.seriesTicker == marketId }
-    var showBottomSheet by remember { mutableStateOf(false) }
     var selectedMarket by remember { mutableStateOf<Pair<PredictionMarket.Event.Market, Boolean>?>(null) }
 
     Scaffold(
@@ -119,7 +118,6 @@ fun PredictionMarketDetailScreen(viewModel: PortfolioViewModel, backStack: NavBa
                                     .height(35.dp),
                                 onClick = {
                                     selectedMarket = marketItem to true
-                                    showBottomSheet = true
                                 },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(
@@ -141,7 +139,6 @@ fun PredictionMarketDetailScreen(viewModel: PortfolioViewModel, backStack: NavBa
                                     .height(35.dp),
                                 onClick = {
                                     selectedMarket = marketItem to false
-                                    showBottomSheet = true
                                 },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(

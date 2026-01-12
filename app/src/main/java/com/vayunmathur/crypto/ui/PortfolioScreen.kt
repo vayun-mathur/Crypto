@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -132,6 +133,7 @@ fun TokenListScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
     val normalTokens by viewModel.normalTokens.collectAsState()
     val stockTokens by viewModel.stockTokens.collectAsState()
     val lendTokens by viewModel.lendTokens.collectAsState()
+    val predTokens by viewModel.predTokens.collectAsState()
     val tokens = normalTokens + stockTokens + lendTokens
     val wallet = viewModel.wallet
     val totalValue = tokens.sumOf { it.totalValue }
@@ -209,6 +211,21 @@ fun TokenListScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    "Prediction Positions",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            items(predTokens) { token ->
+                TokenCard(token = token) {
+                    //backStack.add(P(token.tokenInfo.mintAddress))
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
@@ -229,7 +246,7 @@ fun TokenCard(token: Token, onClick: () -> Unit = {}) {
                     .clip(CircleShape)
                     .background(getTokenColor(token.tokenInfo))
             )
-            Column(modifier = Modifier.padding(start = 16.dp)) {
+            Column(modifier = Modifier.padding(start = 16.dp).weight(1f)) {
                 Text(text = token.tokenInfo.name, fontWeight = FontWeight.Bold)
                 val tpr = TokenPriceRepository[token.tokenInfo]
                 when(token.tokenInfo.category) {
@@ -241,9 +258,12 @@ fun TokenCard(token: Token, onClick: () -> Unit = {}) {
                         val apy = JupiterLendRepository[token.tokenInfo]?.apy ?: 0.0
                         Text(text = "${String.format("%.2f", apy * 100)}% APY", color = Color.Green)
                     }
+
+                    TokenInfo.Companion.Category.PRED_MARKET -> {
+                        Text("")
+                    }
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
                 Text(text = "$${String.format("%.2f", token.totalValue)}")
                 Text(text = "${token.amount.displayAmount()} ${token.tokenInfo.symbol}")
