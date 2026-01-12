@@ -167,10 +167,10 @@ fun TokenListScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
         )
+        Spacer(modifier = Modifier.height(32.dp))
 
-        LazyColumn() {
+        LazyColumn {
             item {
-                Spacer(modifier = Modifier.height(32.dp))
                 Text(
                     "Token Positions",
                     style = MaterialTheme.typography.titleLarge,
@@ -226,6 +226,9 @@ fun TokenListScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
                     //backStack.add(P(token.tokenInfo.mintAddress))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
+            }
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
