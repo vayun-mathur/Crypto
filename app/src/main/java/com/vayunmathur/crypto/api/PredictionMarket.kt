@@ -1,4 +1,4 @@
-package com.vayunmathur.crypto
+package com.vayunmathur.crypto.api
 
 import com.vayunmathur.crypto.token.TokenInfo
 import io.ktor.client.call.body
@@ -118,24 +118,38 @@ object PredictionMarket {
         fun anyMarketOpen() = markets.any { it.isOpen() }
     }
 
-    suspend fun getPredictionMarkets(): List<Event> {
+    suspend fun getPredictionMarketsPartial(cursor: Int): Pair<List<Event>, Int> {
         try {
-            val content = client.get("https://prediction-markets-api.dflow.net/api/v1/events") {
+            val content = client.get("https://dev-prediction-markets-api.dflow.net/api/v1/events") {
                 parameter("withNestedMarkets", true)
                 parameter("sort", "volume")
+                parameter("cursor", cursor)
             }.body<PredictionMarketPage>()
-            return content.events.map { it.toRealEvent() }
+            return Pair(content.events.map { it.toRealEvent() }, content.cursor)
         } catch(e: Exception) {
-            return emptyList()
+            return Pair(emptyList(), 0)
         }
     }
 
-    suspend fun makeOrder(market: Event.Market, yes: Boolean, amount: Double, publicKey: String) {
+    suspend fun getPredictionMarkets(): List<Event> {
+        val allEvents = mutableListOf<Event>()
+        var prevCursor = 0
+        while (true) {
+            val (events, cursor) = getPredictionMarketsPartial(prevCursor)
+            if(cursor == prevCursor || cursor == 0) {
+                return allEvents
+            }
+            prevCursor = cursor
+            allEvents += events
+        }
+    }
+
+    suspend fun makeOrder(market: Event.Market, yes: Boolean, amount: Double, publicKey: String): PendingOrder {
         val outputMint = if (yes) market.yesMint else market.noMint
         val inputMint = TokenInfo.USDC.mintAddress
         val slippageBps = 50
 
-        val res = client.get("https://quote-api.dflow.net/order") {
+        val res = client.get("https://dev-quote-api.dflow.net/order") {
             parameter("inputMint", inputMint)
             parameter("outputMint", outputMint)
             parameter("amount", (amount*1000000).toInt().toString())
@@ -143,7 +157,6 @@ object PredictionMarket {
             parameter("userPublicKey", publicKey)
         }
 
-        val orderResponse = res.body<String>()
-        println(JSON.encodeToString(orderResponse))
+        return res.body<PendingOrder>()
     }
 }

@@ -1,4 +1,4 @@
-package com.vayunmathur.crypto
+package com.vayunmathur.crypto.api
 
 import com.vayunmathur.crypto.token.TokenInfo
 import io.ktor.client.call.body
@@ -31,14 +31,6 @@ object JupiterAPI {
         } }.fold(emptyMap()) { acc, map -> acc + map }
     }
 
-    @Serializable
-    data class PendingOrder(
-        val transaction: String,
-        val requestId: String,
-        val inAmount: Long,
-        val outAmount: Long
-    )
-
     suspend fun createOrder(
         inputToken: TokenInfo,
         outputToken: TokenInfo,
@@ -53,7 +45,8 @@ object JupiterAPI {
                 parameter("amount", (amount * 10.0.pow(inputToken.decimals)).toLong())
                 parameter("taker", taker.publicKey.toBase58())
             }.body()
-        } catch(_: Exception) {
+        } catch(e: Exception) {
+            e.printStackTrace()
             null
         }
     }

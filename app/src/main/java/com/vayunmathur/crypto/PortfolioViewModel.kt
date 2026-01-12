@@ -7,6 +7,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.vayunmathur.crypto.api.JupiterAPI
+import com.vayunmathur.crypto.api.PendingOrder
+import com.vayunmathur.crypto.api.PredictionMarket
+import com.vayunmathur.crypto.api.SolanaAPI
 import com.vayunmathur.crypto.token.JupiterLendRepository
 import com.vayunmathur.crypto.token.Token
 import com.vayunmathur.crypto.token.TokenInfo
@@ -63,12 +67,12 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
             _lendTokens.value = decodedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
         }
 
-        println(cachedTokens)
-
         val savedPrivateKey = sharedPreferences.getString("private_key", null)
         if (savedPrivateKey != null) {
             initializeWallet(savedPrivateKey)
         }
+
+        updatePredictionMarkers()
     }
 
     fun createWallet() {
@@ -126,7 +130,12 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
         _normalTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
         _stockTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.XSTOCK }
         _lendTokens.value = fetchedTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
-        //_predictionMarkets.value = PredictionMarket.getPredictionMarkets()
+    }
+
+    fun updatePredictionMarkers() {
+        viewModelScope.launch {
+            _predictionMarkets.value = PredictionMarket.getPredictionMarkets()
+        }
     }
 
     fun signTransaction(transaction: String): String {
@@ -143,43 +152,44 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
         }
     }
 
-    fun swap(order: JupiterAPI.PendingOrder) {
+    fun placeOrder(order: PendingOrder) {
         viewModelScope.launch {
             CoroutineScope(Dispatchers.IO).launch {
                 val signedTransaction = signTransaction(order.transaction)
-                val response = JupiterAPI.completeOrder(signedTransaction, order.requestId)
-                if (response?.status == "Success") {
-                    ignoreNextFetch = true
-                    response.swapEvents?.firstOrNull()?.let { swapEvent ->
-                        val allTokens = (_normalTokens.value + _stockTokens.value + _lendTokens.value).toMutableList()
-                        val inputToken = allTokens.find { it.tokenInfo.mintAddress == swapEvent.inputMint }
-                        val outputToken = allTokens.find { it.tokenInfo.mintAddress == swapEvent.outputMint }
-
-                        if (inputToken != null && outputToken != null) {
-                            val inputAmount = swapEvent.inputAmount.toDouble() / 10.0.pow(inputToken.tokenInfo.decimals)
-                            val outputAmount = swapEvent.outputAmount.toDouble() / 10.0.pow(outputToken.tokenInfo.decimals)
-
-                            val updatedInputToken = inputToken.copy(amount = inputToken.amount - inputAmount)
-                            val updatedOutputToken = outputToken.copy(amount = outputToken.amount + outputAmount)
-
-                            val inputIndex = allTokens.indexOf(inputToken)
-                            if (inputIndex != -1) {
-                                allTokens[inputIndex] = updatedInputToken
-                            }
-
-                            val outputIndex = allTokens.indexOf(outputToken)
-                            if (outputIndex != -1) {
-                                allTokens[outputIndex] = updatedOutputToken
-                            }
-
-                            _normalTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
-                            _stockTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.XSTOCK }
-                            _lendTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
-                        }
-                    }
-                } else {
-                    showToast("Transaction failed")
-                }
+                TODO("IMPLEMENT REST")
+//                val response = JupiterAPI.completeOrder(signedTransaction, order.requestId)
+//                if (response?.status == "Success") {
+//                    ignoreNextFetch = true
+//                    response.swapEvents?.firstOrNull()?.let { swapEvent ->
+//                        val allTokens = (_normalTokens.value + _stockTokens.value + _lendTokens.value).toMutableList()
+//                        val inputToken = allTokens.find { it.tokenInfo.mintAddress == swapEvent.inputMint }
+//                        val outputToken = allTokens.find { it.tokenInfo.mintAddress == swapEvent.outputMint }
+//
+//                        if (inputToken != null && outputToken != null) {
+//                            val inputAmount = swapEvent.inputAmount.toDouble() / 10.0.pow(inputToken.tokenInfo.decimals)
+//                            val outputAmount = swapEvent.outputAmount.toDouble() / 10.0.pow(outputToken.tokenInfo.decimals)
+//
+//                            val updatedInputToken = inputToken.copy(amount = inputToken.amount - inputAmount)
+//                            val updatedOutputToken = outputToken.copy(amount = outputToken.amount + outputAmount)
+//
+//                            val inputIndex = allTokens.indexOf(inputToken)
+//                            if (inputIndex != -1) {
+//                                allTokens[inputIndex] = updatedInputToken
+//                            }
+//
+//                            val outputIndex = allTokens.indexOf(outputToken)
+//                            if (outputIndex != -1) {
+//                                allTokens[outputIndex] = updatedOutputToken
+//                            }
+//
+//                            _normalTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.NORMAL }
+//                            _stockTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.XSTOCK }
+//                            _lendTokens.value = allTokens.filter { it.tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND }
+//                        }
+//                    }
+//                } else {
+//                    showToast("Transaction failed")
+//                }
             }
         }
     }

@@ -8,5 +8,5 @@ data class Token(
     val amount: Double
 ) {
     val totalValue: Double
-        get() = TokenPriceRepository[tokenInfo]!!.price * amount
+        get() = (TokenPriceRepository[tokenInfo]?.price ?: 0.0) * amount
 }

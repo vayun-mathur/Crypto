@@ -1,6 +1,9 @@
 package com.vayunmathur.crypto.ui
 
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,12 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -46,8 +52,9 @@ import com.vayunmathur.crypto.MAIN_NAVBAR_PAGES
 import com.vayunmathur.crypto.MaximizedRow
 import com.vayunmathur.crypto.NavigationBottomBar
 import com.vayunmathur.crypto.PortfolioViewModel
-import com.vayunmathur.crypto.PredictionMarket
+import com.vayunmathur.crypto.api.PredictionMarket
 import com.vayunmathur.crypto.PredictionMarketPage
+import com.vayunmathur.crypto.token.TokenInfo
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.text.NumberFormat
@@ -75,161 +82,114 @@ fun PredictionMarketDetailScreen(viewModel: PortfolioViewModel, backStack: NavBa
             NavigationBottomBar(MAIN_NAVBAR_PAGES,PredictionMarketPage, backStack)
         }
     ) { paddingValues ->
-            if (market != null) {
-                LazyColumn(
-                    Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp)
-                ) {
-                    item {
-                        MaximizedRow {
-                            Text(
-                                market.title,
-                                style = MaterialTheme.typography.headlineLarge,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text("● Live", color = Color.Green, fontSize = 12.sp)
-                        }
-                        Spacer(Modifier.height(16.dp))
+        if (market != null) {
+            LazyColumn(
+                Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp)
+            ) {
+                item {
+                    MaximizedRow {
+                        Text(
+                            market.title,
+                            style = MaterialTheme.typography.headlineLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text("● Live", color = Color.Green, fontSize = 12.sp)
                     }
+                    Spacer(Modifier.height(16.dp))
+                }
 
-                    itemsIndexed(market.markets.sortedByDescending { it.yesPrice }) { idx, marketItem ->
-                        if (idx > 0) HorizontalDivider()
-                        MaximizedRow(Modifier.padding(vertical = 8.dp)) {
+                itemsIndexed(market.markets.sortedByDescending { it.yesPrice }) { idx, marketItem ->
+                    if (idx > 0) HorizontalDivider()
+                    MaximizedRow(Modifier.padding(vertical = 8.dp)) {
+                        Text(
+                            marketItem.subtitle,
+                            fontSize = 16.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Row(Modifier, Arrangement.spacedBy(8.dp), Alignment.CenterVertically) {
                             Text(
-                                marketItem.subtitle,
+                                "${(marketItem.chance * 100).toInt()}%",
                                 fontSize = 16.sp,
-                                modifier = Modifier.weight(1f)
+                                fontWeight = FontWeight.Bold,
                             )
-                            Row(Modifier, Arrangement.spacedBy(8.dp), Alignment.CenterVertically) {
-                                Text(
-                                    "${(marketItem.chance * 100).toInt()}%",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
+                            Button(
+                                modifier = Modifier
+                                    .width(70.dp)
+                                    .height(35.dp),
+                                onClick = {
+                                    selectedMarket = marketItem to true
+                                    showBottomSheet = true
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(
+                                        0x3325D366
+                                    )
                                 )
-                                Button(
-                                    modifier = Modifier
-                                        .width(70.dp)
-                                        .height(35.dp),
-                                    onClick = {
-                                        selectedMarket = marketItem to true
-                                        showBottomSheet = true
-                                    },
-                                    shape = RoundedCornerShape(8.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(
-                                            0x3325D366
-                                        )
+                            ) {
+                                val yesNum = (marketItem.yesPrice * 100).toInt()
+                                Text(
+                                    "Yes ${yesNum}¢",
+                                    color = Color(0xFF25D366),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                            Button(
+                                modifier = Modifier
+                                    .width(70.dp)
+                                    .height(35.dp),
+                                onClick = {
+                                    selectedMarket = marketItem to false
+                                    showBottomSheet = true
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(
+                                        0x33F44336
                                     )
-                                ) {
-                                    val yesNum = (marketItem.yesPrice * 100).toInt()
-                                    Text(
-                                        "Yes ${yesNum}¢",
-                                        color = Color(0xFF25D366),
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
-                                }
-                                Button(
-                                    modifier = Modifier
-                                        .width(70.dp)
-                                        .height(35.dp),
-                                    onClick = {
-                                        selectedMarket = marketItem to false
-                                        showBottomSheet = true
-                                    },
-                                    shape = RoundedCornerShape(8.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(
-                                            0x33F44336
-                                        )
-                                    )
-                                ) {
-                                    val noNum = (marketItem.noPrice * 100).toInt()
-                                    Text(
-                                        "No ${noNum}¢",
-                                        color = Color(0xFFF44336),
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
-                                }
+                                )
+                            ) {
+                                val noNum = (marketItem.noPrice * 100).toInt()
+                                Text(
+                                    "No ${noNum}¢",
+                                    color = Color(0xFFF44336),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
                             }
                         }
                     }
                 }
-        }
-    }
-
-    if (showBottomSheet && selectedMarket != null) {
-        val (marketItem, isYes) = selectedMarket!!
-        ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
-            sheetState = rememberModalBottomSheetState(),
-        ) {
-            OrderSheet(viewModel, marketItem, isYes) {
-                showBottomSheet = false
             }
         }
     }
-}
 
-@Composable
-fun OrderSheet(
-    viewModel: PortfolioViewModel,
-    market: PredictionMarket.Event.Market,
-    isYes: Boolean,
-    onDismiss: () -> Unit
-) {
-    var amount by remember { mutableStateOf("5") }
-    val contractPrice by remember { derivedStateOf { if(isYes) market.yesPrice else market.noPrice } }
-    val numContracts by remember { derivedStateOf { floor((amount.toDoubleOrNull() ?: 0.0) / contractPrice).toInt() } }
-    val actualSpend by remember { derivedStateOf { numContracts * contractPrice } }
-
-    val scope = rememberCoroutineScope()
-
-    val context = LocalContext.current
-
-    Column(Modifier.padding(16.dp).fillMaxWidth()) {
-        Row {
-            Text(
-                "Buy ${if (isYes) "Yes" else "No"}",
-                color = if (isYes) Color(0xFF25D366) else Color(0xFFF44336)
-            )
-            Text(" — ${market.subtitle}")
-        }
-        Spacer(Modifier.height(24.dp))
-
-        OutlinedTextField(
-            value = amount,
-            onValueChange = { amount = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Amount to spend") },
-            prefix = { Text("USDC") }
+    if (selectedMarket != null) {
+        val (marketItem, isYes) = selectedMarket!!
+        val tokenInfo = TokenInfo(
+            if (isYes) "YES" else "NO",
+            "yesno",
+            TokenInfo.Companion.Category.NORMAL,
+            if(isYes) marketItem.yesMint else marketItem.noMint,
+            6, TokenInfo.SPL_TOKEN
         )
-        Spacer(Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("You will spend:")
-            Text(NumberFormat.getCurrencyInstance().format(actualSpend))
-        }
-
-        Spacer(Modifier.height(24.dp))
-        Text("If your prediction is correct, the payout is expected within 24 hours after the market closes, and the result is finalized.", style = MaterialTheme.typography.labelSmall)
-        Spacer(Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                scope.launch {
-                    Toast.makeText(context, "Prediction market trading not yet supported", Toast.LENGTH_LONG).show()
-                    //PredictionMarket.makeOrder(market, isYes, actualSpend, viewModel.owner)
-                    onDismiss()
+        OrderDialog(
+            viewModel,
+            { amount -> PredictionMarket.makeOrder(marketItem, isYes, amount, viewModel.wallet.publicKey.toBase58()) },
+            TokenInfo.USDC,
+            tokenInfo,
+            false,
+            {
+                Row {
+                    Text(
+                        "Buy ${if (isYes) "Yes" else "No"}",
+                        color = if (isYes) Color(0xFF25D366) else Color(0xFFF44336)
+                    )
+                    Text(" — ${marketItem.subtitle}")
                 }
             },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            enabled = actualSpend > 0
-        ) {
-            val formattedWin = NumberFormat.getCurrencyInstance().format(numContracts)
-            Text("Buy ${if(isYes) "Yes" else "No"} → Win $formattedWin", fontSize = 16.sp)
-        }
+            { outputAmount -> Text("Buy ${if(isYes) "Yes" else "No"} -> Win ${NumberFormat.getCurrencyInstance().format(outputAmount)}") },
+            { selectedMarket = null },
+        )
     }
 }

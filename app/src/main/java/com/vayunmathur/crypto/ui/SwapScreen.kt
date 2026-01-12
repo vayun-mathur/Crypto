@@ -41,13 +41,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import com.vayunmathur.crypto.JupiterAPI
+import com.vayunmathur.crypto.api.JupiterAPI
 import com.vayunmathur.crypto.MAIN_NAVBAR_PAGES
 import com.vayunmathur.crypto.MaximizedRow
 import com.vayunmathur.crypto.NavigationBottomBar
 import com.vayunmathur.crypto.PortfolioViewModel
 import com.vayunmathur.crypto.R
 import com.vayunmathur.crypto.SwapPage
+import com.vayunmathur.crypto.api.PendingOrder
 import com.vayunmathur.crypto.token.TokenInfo
 import com.vayunmathur.crypto.token.TokenPriceRepository
 import kotlinx.coroutines.delay
@@ -63,7 +64,7 @@ fun SwapScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>) {
     var fromAmount by remember { mutableStateOf("5") }
     var toTokenInfo by remember { mutableStateOf(TokenInfo.USDC) }
     var fromTokenInfo by remember { mutableStateOf(TokenInfo.SOL) }
-    var pendingOrder by remember { mutableStateOf<JupiterAPI.PendingOrder?>(null) }
+    var pendingOrder by remember { mutableStateOf<PendingOrder?>(null) }
     val progress = remember { Animatable(0f) }
     var lastUpdateTime by remember { mutableStateOf(0L) }
     var showDialog by remember { mutableStateOf(false) }
@@ -75,7 +76,7 @@ fun SwapScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKey>) {
         val toAmount = pendingOrder?.let { it.outAmount / 10.0.pow(toTokenInfo.decimals) } ?: 0.0
         ConfirmationDialog(
             onConfirm = {
-                pendingOrder?.let { viewModel.swap(it) }
+                pendingOrder?.let { viewModel.placeOrder(it) }
             },
             onDismiss = { showDialog = false },
             title = "Confirm Swap",

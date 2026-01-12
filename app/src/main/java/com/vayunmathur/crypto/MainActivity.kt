@@ -138,7 +138,8 @@ data class NavbarPage(val name: String, val icon: Int, val route: NavKey)
 val MAIN_NAVBAR_PAGES = listOf(
     NavbarPage("Portfolio", R.drawable.account_balance_wallet_24px, PortfolioPage),
     NavbarPage("Swap", R.drawable.swap_vert_24px, SwapPage),
-    NavbarPage("Send", R.drawable.send_24px, SendPage)
+    NavbarPage("Send", R.drawable.send_24px, SendPage),
+    NavbarPage("Prediction", R.drawable.online_prediction_24px, PredictionMarketPage),
 )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)

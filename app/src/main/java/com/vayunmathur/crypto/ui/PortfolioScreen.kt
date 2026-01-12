@@ -231,9 +231,10 @@ fun TokenCard(token: Token, onClick: () -> Unit = {}) {
             )
             Column(modifier = Modifier.padding(start = 16.dp)) {
                 Text(text = token.tokenInfo.name, fontWeight = FontWeight.Bold)
+                val tpr = TokenPriceRepository[token.tokenInfo]
                 when(token.tokenInfo.category) {
                     TokenInfo.Companion.Category.NORMAL, TokenInfo.Companion.Category.XSTOCK -> Text(
-                        text = "$${String.format("%.2f", TokenPriceRepository[token.tokenInfo]!!.price)} ${if (TokenPriceRepository[token.tokenInfo]!!.change >= 0) "+" else ""}${String.format("%.2f", TokenPriceRepository[token.tokenInfo]!!.change)}%",
+                        text = "$${String.format("%.2f", tpr?.price ?: 0.0)} ${if (tpr?.change ?: 0.0 >= 0) "+" else ""}${String.format("%.2f", tpr?.change ?: 0.0)}%",
                         color = if (TokenPriceRepository[token.tokenInfo]!!.change >= 0) Color.Green else Color.Red
                     )
                     TokenInfo.Companion.Category.JUPITER_LEND -> {
@@ -241,7 +242,6 @@ fun TokenCard(token: Token, onClick: () -> Unit = {}) {
                         Text(text = "${String.format("%.2f", apy * 100)}% APY", color = Color.Green)
                     }
                 }
-
             }
             Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {

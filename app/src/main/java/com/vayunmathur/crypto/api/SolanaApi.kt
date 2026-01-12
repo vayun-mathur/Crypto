@@ -1,4 +1,4 @@
-package com.vayunmathur.crypto
+package com.vayunmathur.crypto.api
 
 import com.vayunmathur.crypto.token.Token
 import com.vayunmathur.crypto.token.TokenInfo
@@ -152,26 +152,23 @@ object SolanaAPI {
             })
             val solanaToken = Token(TokenInfo.SOL, solanaLamports!!.toDouble() / 1000000000)
             return (tokens1 + tokens2 + solanaToken)
-        } catch(_: Exception) {
+        } catch(e: Exception) {
+            e.printStackTrace()
             return emptyList()
         }
     }
 
     private suspend inline fun <reified T> rpcCall(method: String, params: JsonArray): T? {
-        try {
-            val response: HttpResponse = client.post(HELIUS_URL) {
-                contentType(ContentType.Application.Json)
-                setBody(
-                    RPCRequest(
-                        method = method,
-                        params = params
-                    )
+        val response: HttpResponse = client.post(HELIUS_URL) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                RPCRequest(
+                    method = method,
+                    params = params
                 )
-            }
-            return response.body<RPCResult<T>>().result.value
-        } catch(_: Exception) {
-            return null
+            )
         }
+        return response.body<RPCResult<T>>().result.value
     }
 
     fun transfer(from: Keypair, token: TokenInfo, recipient: PublicKey, amount: Double) {
@@ -223,12 +220,12 @@ object SolanaAPI {
         connection.sendTransaction(transaction)
     }
 
-    private const val HELIUS_URL =  "https://mainnet.helius-rpc.com/?api-key=1fd6f762-ef2f-444a-8eae-eabd44711f31"
+    private const val HELIUS_URL = "https://docs-demo.solana-mainnet.quiknode.pro/ "
 
     @Serializable
     data class RPCRequest(
         val jsonrpc: String = "2.0",
-        val id: Int = System.currentTimeMillis().toInt(),
+        val id: UInt = System.currentTimeMillis().toUInt(),
         val method: String,
         val params: JsonArray
     )
@@ -237,7 +234,7 @@ object SolanaAPI {
     data class RPCResult<T>(
         val jsonrpc: String,
         val result: Result<T>,
-        val id: Int
+        val id: UInt
     ) {
         @Serializable
         data class Result<T>(

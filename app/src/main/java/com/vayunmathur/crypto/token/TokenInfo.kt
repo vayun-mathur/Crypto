@@ -15,8 +15,8 @@ data class TokenInfo(
 ) {
 
     companion object {
-        private val SPL_TOKEN = TOKEN_PROGRAM_ID.toBase58()
-        private val TOKEN_2022 = TOKEN_2022_PROGRAM_ID.toBase58()
+        val SPL_TOKEN = TOKEN_PROGRAM_ID.toBase58()
+        val TOKEN_2022 = TOKEN_2022_PROGRAM_ID.toBase58()
 
         enum class Category {
             NORMAL, JUPITER_LEND, XSTOCK

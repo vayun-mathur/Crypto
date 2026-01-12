@@ -1,6 +1,6 @@
 package com.vayunmathur.crypto.token
 
-import com.vayunmathur.crypto.JupiterAPI
+import com.vayunmathur.crypto.api.JupiterAPI
 import kotlinx.serialization.Serializable
 
 object TokenPriceRepository : Repository<TokenPriceRepository.PriceData>(PriceData.serializer()) {

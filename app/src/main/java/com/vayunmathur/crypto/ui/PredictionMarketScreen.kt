@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,7 +34,7 @@ import com.vayunmathur.crypto.MaximizedRow
 import com.vayunmathur.crypto.NavigationBottomBar
 import com.vayunmathur.crypto.PortfolioPage
 import com.vayunmathur.crypto.PortfolioViewModel
-import com.vayunmathur.crypto.PredictionMarket
+import com.vayunmathur.crypto.api.PredictionMarket
 import com.vayunmathur.crypto.PredictionMarketPage
 import java.text.NumberFormat
 import kotlin.collections.filter
@@ -43,8 +44,12 @@ fun PredictionMarketScreen(viewModel: PortfolioViewModel, backStack: NavBackStac
 
     val markets by viewModel.predictionMarkets.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.updatePredictionMarkers()
+    }
+
     Scaffold(bottomBar = {
-        NavigationBottomBar(MAIN_NAVBAR_PAGES, PortfolioPage, backStack)
+        NavigationBottomBar(MAIN_NAVBAR_PAGES, PredictionMarketPage, backStack)
     }) { paddingValues ->
         Column(
             modifier = Modifier
