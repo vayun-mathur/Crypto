@@ -127,6 +127,7 @@ class PortfolioViewModel(private val application: Application) : AndroidViewMode
         TokenPriceRepository.update()
         JupiterLendRepository.update()
         val fetchedTokens = SolanaAPI.getTokenAccountsByOwner(wallet)
+        if(fetchedTokens.isEmpty()) return
 
         sharedPreferences.edit {
             putString("cached_tokens", json.encodeToString(fetchedTokens))
