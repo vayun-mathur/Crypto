@@ -117,6 +117,10 @@ fun PortfolioScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
                     Icon(painterResource(R.drawable.menu_24px), contentDescription = "Menu")
                 }
             })
+        }, floatingActionButton = {
+            FloatingActionButton(onClick = { showTokenDialog = true }) {
+                Icon(painterResource(R.drawable.add_24px), contentDescription = "Add Token")
+            }
         }, contentWindowInsets = WindowInsets()) { paddingValues ->
             Column(
                 modifier = Modifier

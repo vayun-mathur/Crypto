@@ -19,7 +19,7 @@ fun TokenListDialog(alreadyExistingTokens: Set<TokenInfo>, viewModel: PortfolioV
         title = { Text("Add a new Token") },
         text = {
             LazyColumn {
-                items(TokenInfo.TOKEN_LIST - alreadyExistingTokens) { tokenInfo ->
+                items(TokenInfo.TOKEN_LIST.filter { it.category != TokenInfo.Companion.Category.PRED_MARKET } - alreadyExistingTokens) { tokenInfo ->
                     val onClick = { viewModel.createTokenAccount(tokenInfo); onDismiss() }
                     if(tokenInfo.category == TokenInfo.Companion.Category.JUPITER_LEND) {
                         val apy = JupiterLendRepository[tokenInfo]?.apy ?: 0.0
