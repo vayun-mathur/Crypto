@@ -1,5 +1,6 @@
 package com.vayunmathur.crypto.api
 
+import com.vayunmathur.crypto.api.SolanaAPI.RPCResult
 import com.vayunmathur.crypto.token.Token
 import com.vayunmathur.crypto.token.TokenInfo
 import io.ktor.client.HttpClient
@@ -102,6 +103,8 @@ data class PriceData(
 
 typealias PriceResponse = Map<String, PriceData>
 
+typealias RPCValueResult<T> = RPCResult<RPCResult.Result<T>>
+
 val JSON = Json {
     prettyPrint = true
     isLenient = true
@@ -122,7 +125,7 @@ object SolanaAPI {
     suspend fun getTokenAccountsByOwner(wallet: Keypair): List<Token> {
         try {
             val tokens1 =
-                rpcCall<TokenAccountByOwnerData>("getTokenAccountsByOwner", buildJsonArray {
+                rpcCallV<TokenAccountByOwnerData>("getTokenAccountsByOwner", buildJsonArray {
                     add(wallet.publicKey.toBase58())
                     add(buildJsonObject {
                         put("programId", "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
@@ -133,7 +136,7 @@ object SolanaAPI {
                     })
                 })!!.toTokens()
             val tokens2 =
-                rpcCall<TokenAccountByOwnerData>("getTokenAccountsByOwner", buildJsonArray {
+                rpcCallV<TokenAccountByOwnerData>("getTokenAccountsByOwner", buildJsonArray {
                     add(wallet.publicKey.toBase58())
                     add(buildJsonObject {
                         put("programId", "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
@@ -143,7 +146,7 @@ object SolanaAPI {
                         put("encoding", "jsonParsed")
                     })
                 })!!.toTokens()
-            val solanaLamports = rpcCall<ULong>("getBalance", buildJsonArray {
+            val solanaLamports = rpcCallV<ULong>("getBalance", buildJsonArray {
                 add(wallet.publicKey.toBase58())
                 add(buildJsonObject {
                     put("commitment", "finalized")
@@ -158,6 +161,19 @@ object SolanaAPI {
         }
     }
 
+    private suspend inline fun <reified T> rpcCallV(method: String, params: JsonArray): T? {
+        val response: HttpResponse = client.post(HELIUS_URL) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                RPCRequest(
+                    method = method,
+                    params = params
+                )
+            )
+        }
+        return response.body<RPCValueResult<T>>().result.value
+    }
+
     private suspend inline fun <reified T> rpcCall(method: String, params: JsonArray): T? {
         val response: HttpResponse = client.post(HELIUS_URL) {
             contentType(ContentType.Application.Json)
@@ -168,7 +184,7 @@ object SolanaAPI {
                 )
             )
         }
-        return response.body<RPCResult<T>>().result.value
+        return response.body<RPCResult<T>>().result
     }
 
     fun transfer(from: Keypair, token: TokenInfo, recipient: PublicKey, amount: Double) {
@@ -220,6 +236,17 @@ object SolanaAPI {
         connection.sendTransaction(transaction)
     }
 
+    suspend fun sendTransaction(signedTransactionBase64: String): String? {
+        return rpcCall<String>("sendTransaction", buildJsonArray {
+            add(signedTransactionBase64)
+            add(buildJsonObject {
+                put("skipPreflight", true)
+                put("maxRetries", 3)
+                put("encoding", "base64")
+            })
+        })
+    }
+
     private const val HELIUS_URL = "https://docs-demo.solana-mainnet.quiknode.pro/ "
 
     @Serializable
@@ -230,10 +257,11 @@ object SolanaAPI {
         val params: JsonArray
     )
 
+
     @Serializable
     data class RPCResult<T>(
         val jsonrpc: String,
-        val result: Result<T>,
+        val result: T,
         val id: UInt
     ) {
         @Serializable

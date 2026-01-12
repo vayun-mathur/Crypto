@@ -71,19 +71,4 @@ object JupiterAPI {
         val outputAmountResult: String? = null,
         val swapEvents: List<SwapEvent>? = null,
     )
-
-    suspend fun completeOrder(signedTransaction: String, requestId: String): CompleteOrderResponse? {
-        return try {
-            client.post("https://api.jup.ag/ultra/v1/execute") {
-                header("x-api-key", API_KEY)
-                contentType(ContentType.Application.Json)
-                setBody(buildJsonObject {
-                    put("signedTransaction", signedTransaction)
-                    put("requestId", requestId)
-                })
-            }.body()
-        } catch (_: Exception) {
-            null
-        }
-    }
 }
