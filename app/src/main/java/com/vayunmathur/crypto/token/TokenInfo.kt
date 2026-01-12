@@ -18,8 +18,8 @@ data class TokenInfo(
         val SPL_TOKEN = TOKEN_PROGRAM_ID.toBase58()
         val TOKEN_2022 = TOKEN_2022_PROGRAM_ID.toBase58()
 
-        enum class Category {
-            NORMAL, JUPITER_LEND, XSTOCK, PRED_MARKET
+        enum class Category(val displayName: String) {
+            NORMAL("Tokens"), JUPITER_LEND("Lending"), XSTOCK("Stocks"), PRED_MARKET("Prediction Markets")
         }
 
         val SOL = TokenInfo(

@@ -83,10 +83,7 @@ fun PortfolioScreen(viewModel: PortfolioViewModel, backStack: NavBackStack<NavKe
             content = "Please make sure you have your private key saved somewhere so you can restore your wallet again."
         )
     }
-    val normalTokens by viewModel.normalTokens.collectAsState()
-    val stockTokens by viewModel.stockTokens.collectAsState()
-    val lendTokens by viewModel.lendTokens.collectAsState()
-    val tokens = normalTokens + stockTokens + lendTokens
+    val tokens by viewModel.tokens.collectAsState()
 
     if (showTokenDialog) {
         TokenListDialog(tokens.map{it.tokenInfo}.toSet(), viewModel = viewModel) { showTokenDialog = false}
