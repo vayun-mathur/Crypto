@@ -1,10 +1,2 @@
-The best Solana wallet for the casual crypto user to replace traditional finance
-
-Featuring:
-- Receive and send payments
-- Restore wallets from other apps
-- Swap tokens (Jupiter DEX)
-- High Yield Lending with >5% APY (Jupiter Lend)
-- Invest in the individual stocks and ETFs (xStocks)
-
-Coming soon: Prediction Markets
+#### NEW REPOSITORY: https://github.com/vayun-mathur/Modern-Apps
+This repository will no longer be monitored actively, and will not be updated
